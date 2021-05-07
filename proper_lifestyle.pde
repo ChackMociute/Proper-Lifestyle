@@ -13,6 +13,7 @@ boolean hold, text_entry;
 float calories, day_calories, spent_money, budget, temp_budget, temp_spent_money, timer;
 String text, exercise, recipe, item_name, item_price;
 ArrayList<ShoppingItem> shopping_items;
+ArrayList<Meal> recipes;
 
 void settings() {
   size(WIDTH, HEIGHT);
@@ -35,6 +36,7 @@ void setup() {
   item_price = "";
   timer = 0;
   shopping_items = new ArrayList<ShoppingItem>();
+  ArrayList<Meal> recipes = new ArrayList<Meal>();;
   calories = 478;
   day_calories = 2586;
   budget = 30;
@@ -44,6 +46,7 @@ void setup() {
   boxColor1 = color(#A4FFA1);
   boxColor2 = color(#FFDEDE);
   
+  create_recipes(recipes);
 }
 
 
