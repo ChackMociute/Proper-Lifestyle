@@ -9,11 +9,12 @@ final int SCREENS = 6;
 
 color titleColor, backgroundColor, boxColor1, boxColor2;
 int screen, pop_up, recipe_index, tip_index, exercise_index, item_index, text_entry_mode;
-boolean hold, text_entry;
+boolean hold, text_entry, meal_dropdown;
 float calories, day_calories, spent_money, budget, temp_budget, temp_spent_money, timer;
-String text, exercise, recipe, item_name, item_price;
+String text, exercise, item_name, item_price;
 ArrayList<ShoppingItem> shopping_items;
 ArrayList<Meal> recipes;
+Meal recipe, meal;
 
 void settings() {
   size(WIDTH, HEIGHT);
@@ -26,6 +27,7 @@ void setup() {
   text_entry_mode = 0;
   hold = false;
   text_entry = false;
+  meal_dropdown = false;
   text = "";
   recipe_index = 0;
   tip_index = 0;
@@ -36,7 +38,8 @@ void setup() {
   item_price = "";
   timer = 0;
   shopping_items = new ArrayList<ShoppingItem>();
-  ArrayList<Meal> recipes = new ArrayList<Meal>();;
+  recipes = new ArrayList<Meal>();
+  meal = new Meal("");
   calories = 478;
   day_calories = 2586;
   budget = 30;
@@ -45,7 +48,7 @@ void setup() {
   backgroundColor = color(#FFA2A2);
   boxColor1 = color(#A4FFA1);
   boxColor2 = color(#FFDEDE);
-  
+
   create_recipes(recipes);
 }
 
@@ -136,7 +139,6 @@ void dropdown() {
     textAlign(CENTER);
     fill(0);
     text(screen(i), 0.375*WIDTH, 0.18*HEIGHT + i*0.1*HEIGHT);
-    
   }
 }
 
@@ -167,11 +169,14 @@ int change_screen(int screen) {
     for (int i = 0; i < SCREENS; i++) {
       if (mouseY >= 0.1*HEIGHT + i*0.1*HEIGHT & mouseY < 0.1*HEIGHT + (i+1)*0.1*HEIGHT) {
         pop_up = 0;
+        text_entry = false;
+        meal_dropdown = false;
         text_entry_mode = 0;
-        timer = 0;
+        timer = millis();
         text = "";
         item_name = "";
         item_price = "";
+        meal = new Meal("");
         return i;
       }
     }
@@ -203,7 +208,7 @@ void pop_up(int screen, int pop_up) {
 void exit_button(float x, float y) {
   if (screen == 3)
     timer = 0;
-  
+
   stroke(0);
   strokeWeight(3);
 
@@ -222,11 +227,13 @@ void exit_button(float x, float y) {
   if (hover(x - 0.1*WIDTH, x, y, y + 0.1*WIDTH) & !hold & mousePressed) {
     pop_up = 0;
     text_entry = false;
+    meal_dropdown = false;
     text_entry_mode = 0;
     timer = millis();
     text = "";
     item_name = "";
     item_price = "";
+    meal = new Meal("");
   }
 }
 
@@ -311,7 +318,6 @@ String text_entry_box(int color_, int select_color, float x1, float x2, float y1
   }
 
   fill(color_);
-  stroke(3);
 
   if (text_entry) 
     fill(select_color);
@@ -333,6 +339,77 @@ String text_entry_box(int color_, int select_color, float x1, float x2, float y1
   text(text, x1+0.02*WIDTH, y1 + (y2 - y1)/2 + 0.011*HEIGHT);
 
   return "";
+}
+
+void meal_dropdown(float x1, float x2, float y1, float y2) {
+  for (int i = 0; i < recipes.size(); i++) {
+    stroke(0);
+    strokeWeight(3);
+    fill(255);
+
+    if (hover(x1, x2, y2 + i*(y2-y1), y2 + (i+1)*(y2-y1))) {
+      fill(235);
+      if (mousePressed) {
+        fill(0, 255, 0);
+        meal = recipes.get(i);
+        delay(150);
+      }
+    }
+
+    rect(x1, y2 + i*(y2-y1), x2-x1, y2-y1, 8);
+
+    textSize(0.9*(y2-y1));
+    textAlign(LEFT);
+    fill(0);
+    text(recipes.get(i).name, x1 + 0.015*WIDTH, y2 - 0.005*HEIGHT + (i+1)*(y2-y1));
+  }
+}
+
+int meal_dropdown(int color_, int select_color, float x1, float x2, float y1, float y2) {
+  textSize(0.03*HEIGHT);
+  textAlign(LEFT);
+
+  if ((hover(x1, x2, y1, y2) & !hold & mousePressed) | meal_dropdown) {
+    meal_dropdown(x1, x2, y1, y2);
+    meal_dropdown = true;
+  }
+
+  if (!hover(x1, x2, y1, y2) & mousePressed) {
+    if ((meal_dropdown & !hover(x1, x2, y2, y2 + recipes.size()*(y2-y1))) | !meal_dropdown) {
+      meal_dropdown = false;
+      meal = new Meal("");
+    }
+  }
+
+  if (hover(x1, x2 - (x2-x1)/10, y1, y2) & !hold & mousePressed)
+    meal = new Meal("");
+
+  if (meal.name != "")
+    meal_dropdown = false;
+
+  fill(color_);
+
+  if (meal_dropdown | (meal.name != "")) 
+    fill(select_color);
+
+  rect(x1, y1, x2-x1, y2-y1, 8);
+
+  boolean done = done_button(x1 + 9*(x2-x1)/10, x2, y1, y2);
+
+  if ((meal.name != "")) {
+    if ((keyPressed & key == ENTER) | done) {
+      delay(150);
+      int temp = int(meal.calories);
+      meal = new Meal("");
+      return temp;
+    }
+  }
+
+  fill(0);
+  textSize(0.9*(y2-y1));
+  text(meal.name, x1 + 0.015*WIDTH, y2 - 0.005*HEIGHT);
+
+  return 0;
 }
 
 boolean button_base(float x1, float x2, float y1, float y2, color color1, color color2) {
@@ -445,7 +522,7 @@ void calorie_pop_up() {
   stroke(0);
   strokeWeight(3);
   fill(boxColor1);
-  rect(0.07*WIDTH, 0.3*HEIGHT, 0.86*WIDTH, 0.35*HEIGHT, 8);
+  rect(0.07*WIDTH, 0.3*HEIGHT, 0.86*WIDTH, 0.65*HEIGHT, 8);
 
   fill(boxColor2);
   rect(0.07*WIDTH, 0.3*HEIGHT, 0.86*WIDTH, 0.1*WIDTH, 8);
@@ -467,8 +544,11 @@ void calorie_pop_up() {
 
   textAlign(CENTER);
   text("Enter consumed calories", 0.5*WIDTH, 0.55*HEIGHT);
+  text("Enter a meal", 0.5*WIDTH, 0.67*HEIGHT);
   text_entry_mode = 1;
   calories += int(text_entry_box(225, 255, 0.1*WIDTH, 0.9*WIDTH, 0.56*HEIGHT, 0.6*HEIGHT));
+
+  calories += int(meal_dropdown(225, 255, 0.1*WIDTH, 0.9*WIDTH, 0.68*HEIGHT, 0.72*HEIGHT));
 
   exit_button(0.93*WIDTH, 0.3*HEIGHT);
 }
@@ -651,7 +731,7 @@ void recipe_pop_up() {
 
   textSize(0.04*HEIGHT);
   textAlign(CENTER);
-  text(recipe, 0.45*WIDTH, 0.345*HEIGHT);
+  text(recipe.name, 0.45*WIDTH, 0.345*HEIGHT);
 
   textSize(0.03*HEIGHT);
   textAlign(LEFT);
@@ -663,24 +743,24 @@ void recipe_pop_up() {
   float x1 = 0.49*WIDTH - textWidth("Add to shopping")/2, x2 = 0.51*WIDTH + textWidth("Add to shopping")/2;
   float y = 0.71*HEIGHT;
 
-  if(hover(x1, x2, y, y + 0.05*HEIGHT) & !hold & mousePressed & timer == 0) {
-    for (int i = 1; i <= 3; i++) {
-        shopping_items.add(new ShoppingItem(recipe + " ing" + i, i*1.5));
+  if (hover(x1, x2, y, y + 0.05*HEIGHT) & !hold & mousePressed & timer == 0) {
+    for (ShoppingItem i : recipe.ingredients) {
+      shopping_items.add(i);
     }
     fill(0, 255, 0);
     timer = millis();
-  } else if(millis() <= timer+150) {
+  } else if (millis() <= timer+150) {
     fill(0, 255, 0);
-  }else if (hover(x1, x2, y, y + 0.05*HEIGHT) & !hold) {
+  } else if (hover(x1, x2, y, y + 0.05*HEIGHT) & !hold) {
     timer = 0;
     fill(225);
   } else {
     timer = 0;
     fill(boxColor2);
   }
-  
+
   rect(x1, y, x2-x1, 0.05*HEIGHT, 8);
-  
+
   fill(0);
   text("Add to shopping", 0.5*WIDTH, 0.75*HEIGHT);
 
@@ -852,8 +932,6 @@ void budget() {
 //-------------RECIPES-------------
 
 void recipe_list() {
-  String[] recipes = {"Salmon wok", "Tzatziki dip", "Poke bowl", "Protein bars", "Chicken"};
-
   if (recipe_index != 0) {
     if (up_button(0.45*WIDTH, 0.55*WIDTH, 0.15*HEIGHT, 0.15*HEIGHT + 0.1*WIDTH)) {
       recipe_index--;
@@ -862,7 +940,7 @@ void recipe_list() {
     }
   }
 
-  if (recipes.length - 2*recipe_index - 2 > 0) {
+  if (recipes.size() - 2*recipe_index - 2 > 0) {
     if (down_button(0.45*WIDTH, 0.55*WIDTH, 0.85*HEIGHT, 0.85*HEIGHT + 0.1*WIDTH)) {
       recipe_index++;
       pop_up = 0;
@@ -870,7 +948,9 @@ void recipe_list() {
     }
   }
 
-  for (int i = 0; i < (recipes.length - 2*recipe_index >= 2 ? 2 : 1); i++) {
+  String time;
+
+  for (int i = 0; i < (recipes.size() - 2*recipe_index >= 2 ? 2 : 1); i++) {
     stroke(0);
     strokeWeight(4);
     fill(boxColor1);
@@ -892,27 +972,37 @@ void recipe_list() {
 
     if (hover(0.5*WIDTH, 0.6*WIDTH, 0.25*HEIGHT + i*0.3*HEIGHT, 0.31*HEIGHT + i*0.3*HEIGHT) & mousePressed & !hold) {
       pop_up = 1;
-      recipe = recipes[i + recipe_index*2];
+      recipe = recipes.get(i + recipe_index*2);
     }
 
     fill(0);
     textSize(0.04*HEIGHT);
+    textSize(textWidth(recipes.get(i + recipe_index*2).name)/float(int(0.4*WIDTH)) > 0.9 ?
+      0.036*HEIGHT*float(int(0.4*WIDTH))/textWidth(recipes.get(i + recipe_index*2).name) : 0.04*HEIGHT);
     textAlign(LEFT);
-    text(recipes[i + recipe_index*2], 0.11*WIDTH, 0.295*HEIGHT + i*0.3*HEIGHT);
+    text(recipes.get(i + recipe_index*2).name, 0.11*WIDTH, 0.295*HEIGHT + i*0.3*HEIGHT);
 
     textSize(0.03*HEIGHT);
-    text("Calories: #\nCost: #", 0.11*WIDTH, 0.35*HEIGHT + i*0.3*HEIGHT);
+    text("Calories: " + nf(recipes.get(i + recipe_index*2).calories, 0, 0), 0.11*WIDTH, 0.35*HEIGHT + i*0.3*HEIGHT);
+    text("Cost: " + nf(recipes.get(i + recipe_index*2).price, 0, 1), 0.11*WIDTH, 0.4*HEIGHT + i*0.3*HEIGHT);
 
-    text("Description", 0.16*WIDTH, 0.463*HEIGHT + i*0.3*HEIGHT);
+    textSize(textWidth(recipes.get(i + recipe_index*2).short_description)/float(int(0.7*WIDTH)) > 0.9 ?
+      0.027*HEIGHT*float(int(0.7*WIDTH))/textWidth(recipes.get(i + recipe_index*2).short_description) : 0.03*HEIGHT);
+    text(recipes.get(i + recipe_index*2).short_description, 0.16*WIDTH, 0.463*HEIGHT + i*0.3*HEIGHT);
 
+    time = "Time " + nf(recipes.get(i + recipe_index*2).time, 0, 0);
+
+    textSize(0.03*HEIGHT);
+    textSize(textWidth(time)/float(int(0.2*WIDTH)) > 0.9 ?
+      0.027*HEIGHT*float(int(0.2*WIDTH))/textWidth(time) : 0.03*HEIGHT);
     textAlign(RIGHT);
-    text("Time #", 0.88*WIDTH, 0.295*HEIGHT + i*0.3*HEIGHT);
+    text(time, 0.88*WIDTH, 0.295*HEIGHT + i*0.3*HEIGHT);
 
     fill(boxColor2);
     strokeWeight(2);
-    circle(0.88*WIDTH - textWidth("Time #") - 0.03*HEIGHT, 0.285*HEIGHT + i*0.3*HEIGHT, 0.03*HEIGHT);
-    line(0.88*WIDTH - textWidth("Time #") - 0.03*HEIGHT, 0.285*HEIGHT + i*0.3*HEIGHT, 0.88*WIDTH - textWidth("Time #") - 0.03*HEIGHT, 0.275*HEIGHT + i*0.3*HEIGHT);
-    line(0.88*WIDTH - textWidth("Time #") - 0.03*HEIGHT, 0.285*HEIGHT + i*0.3*HEIGHT, 0.88*WIDTH - textWidth("Time #") - 0.0225*HEIGHT, 0.285*HEIGHT + i*0.3*HEIGHT);
+    circle(0.65*WIDTH, 0.285*HEIGHT + i*0.3*HEIGHT, 0.03*HEIGHT);
+    line(0.65*WIDTH, 0.285*HEIGHT + i*0.3*HEIGHT, 0.65*WIDTH, 0.275*HEIGHT + i*0.3*HEIGHT);
+    line(0.65*WIDTH, 0.285*HEIGHT + i*0.3*HEIGHT, 0.662*WIDTH, 0.285*HEIGHT + i*0.3*HEIGHT);
   }
 }
 
