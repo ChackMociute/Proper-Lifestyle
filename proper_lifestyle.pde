@@ -11,10 +11,12 @@ color titleColor, backgroundColor, boxColor1, boxColor2;
 int screen, pop_up, recipe_index, tip_index, exercise_index, item_index, text_entry_mode;
 boolean hold, text_entry, meal_dropdown;
 float calories, day_calories, spent_money, budget, temp_budget, temp_spent_money, timer;
-String text, exercise, item_name, item_price;
+String text, item_name, item_price;
 ArrayList<ShoppingItem> shopping_items;
 ArrayList<Meal> recipes;
+ArrayList<Exercise> exercises;
 Meal recipe, meal;
+Exercise exercise;
 
 void settings() {
   size(WIDTH, HEIGHT);
@@ -33,12 +35,12 @@ void setup() {
   tip_index = 0;
   exercise_index = 0;
   item_index = 0;
-  exercise = "";
   item_name = "";
   item_price = "";
   timer = 0;
   shopping_items = new ArrayList<ShoppingItem>();
   recipes = new ArrayList<Meal>();
+  exercises = new ArrayList<Exercise>();
   meal = new Meal("");
   calories = 478;
   day_calories = 2586;
@@ -50,6 +52,7 @@ void setup() {
   boxColor2 = color(#FFDEDE);
 
   create_recipes(recipes);
+  create_exercises(exercises);
 }
 
 
@@ -545,10 +548,11 @@ void calorie_pop_up() {
   textAlign(CENTER);
   text("Enter consumed calories", 0.5*WIDTH, 0.55*HEIGHT);
   text("Enter a meal", 0.5*WIDTH, 0.67*HEIGHT);
+  
   text_entry_mode = 1;
   calories += int(text_entry_box(225, 255, 0.1*WIDTH, 0.9*WIDTH, 0.56*HEIGHT, 0.6*HEIGHT));
 
-  calories += int(meal_dropdown(225, 255, 0.1*WIDTH, 0.9*WIDTH, 0.68*HEIGHT, 0.72*HEIGHT));
+  calories += meal_dropdown(225, 255, 0.1*WIDTH, 0.9*WIDTH, 0.68*HEIGHT, 0.72*HEIGHT);
 
   exit_button(0.93*WIDTH, 0.3*HEIGHT);
 }
@@ -735,7 +739,7 @@ void recipe_pop_up() {
 
   textSize(0.03*HEIGHT);
   textAlign(LEFT);
-  text("Description of the recipe, how to\nmake it and so on.", 0.08*WIDTH, 0.4*HEIGHT);
+  text(recipe.description, 0.08*WIDTH, 0.4*HEIGHT);
 
   textSize(0.04*HEIGHT);
   textAlign(CENTER);
@@ -782,12 +786,11 @@ void exercise_pop_up() {
 
   textSize(0.04*HEIGHT);
   textAlign(CENTER);
-  text(exercise, 0.45*WIDTH, 0.345*HEIGHT);
+  text(exercise.name, 0.45*WIDTH, 0.345*HEIGHT);
 
   textSize(0.03*HEIGHT);
   textAlign(LEFT);
-  //Only works for lounges as of now for practical reasons
-  text("From a standing position, take \na big step forwards with \none leg such that the your knee \nalmost touches the ground.", 0.08*WIDTH, 0.4*HEIGHT);
+  text(exercise.description, 0.08*WIDTH, 0.4*HEIGHT);
 
   exit_button(0.93*WIDTH, 0.3*HEIGHT);
 }
@@ -1009,8 +1012,6 @@ void recipe_list() {
 //-------------EXERCISES-------------
 
 void exercise_list() {
-  String[] exercises = {"Lounges", "Squats", "Push-ups", "Pull-ups", "HIIT run", "Box jumps", "Bear crawl"};
-
   if (exercise_index != 0) {
     if (up_button(0.45*WIDTH, 0.55*WIDTH, 0.12*HEIGHT, 0.12*HEIGHT + 0.1*WIDTH)) {
       exercise_index--;
@@ -1019,7 +1020,7 @@ void exercise_list() {
     }
   }
 
-  if (exercises.length - 3*exercise_index - 3 > 0) {
+  if (exercises.size() - 3*exercise_index - 3 > 0) {
     if (down_button(0.45*WIDTH, 0.55*WIDTH, 0.92*HEIGHT, 0.92*HEIGHT + 0.1*WIDTH)) {
       exercise_index++;
       pop_up = 0;
@@ -1027,7 +1028,7 @@ void exercise_list() {
     }
   }
 
-  for (int i = 0; i < (exercises.length - 3*exercise_index > 3 ? 3 : exercises.length - 3*exercise_index); i++) {
+  for (int i = 0; i < (exercises.size() - 3*exercise_index > 3 ? 3 : exercises.size() - 3*exercise_index); i++) {
     stroke(0);
     strokeWeight(4);
     fill(boxColor1);
@@ -1044,27 +1045,30 @@ void exercise_list() {
     fill(0);
     textSize(0.03*HEIGHT);
     textAlign(LEFT);
-    text(exercises[i + 3*exercise_index], 0.12*WIDTH, 0.24*HEIGHT + i*0.25*HEIGHT);
-    text("Description", 0.12*WIDTH, 0.3*HEIGHT + i*0.25*HEIGHT);
-    text("Calories burnt: #", 0.12*WIDTH, 0.38*HEIGHT + i*0.25*HEIGHT);
+    text(exercises.get(i + 3*exercise_index).name, 0.12*WIDTH, 0.24*HEIGHT + i*0.25*HEIGHT);
+    text(exercises.get(i + 3*exercise_index).short_description, 0.12*WIDTH, 0.3*HEIGHT + i*0.25*HEIGHT);
+    textSize(0.025*HEIGHT);
+    text("Calories burnt: " + nf(exercises.get(i + 3*exercise_index).calories, 0, 0), 0.12*WIDTH, 0.38*HEIGHT + i*0.25*HEIGHT);
 
     textSize(0.05*HEIGHT);
     textAlign(CENTER);
     text("?", 0.85*WIDTH, 0.25*HEIGHT + i*0.25*HEIGHT);
 
+    String time = "Time: " +  nf(exercises.get(i + 3*exercise_index).time, 0, 0);
+
     textSize(0.03*HEIGHT);
     textAlign(RIGHT);
-    text("Time: #", 0.88*WIDTH, 0.38*HEIGHT + i*0.25*HEIGHT);
+    text(time, 0.88*WIDTH, 0.38*HEIGHT + i*0.25*HEIGHT);
 
     fill(boxColor2);
     strokeWeight(2);
-    circle(0.88*WIDTH - textWidth("Time: #") - 0.03*HEIGHT, 0.37*HEIGHT + i*0.25*HEIGHT, 0.03*HEIGHT);
-    line(0.88*WIDTH - textWidth("Time: #") - 0.03*HEIGHT, 0.37*HEIGHT + i*0.25*HEIGHT, 0.88*WIDTH - textWidth("Time: #") - 0.03*HEIGHT, 0.36*HEIGHT + i*0.25*HEIGHT);
-    line(0.88*WIDTH - textWidth("Time: #") - 0.03*HEIGHT, 0.37*HEIGHT + i*0.25*HEIGHT, 0.88*WIDTH - textWidth("Time: #") - 0.0225*HEIGHT, 0.37*HEIGHT + i*0.25*HEIGHT);
+    circle(0.88*WIDTH - textWidth(time) - 0.03*HEIGHT, 0.37*HEIGHT + i*0.25*HEIGHT, 0.03*HEIGHT);
+    line(0.88*WIDTH - textWidth(time) - 0.03*HEIGHT, 0.37*HEIGHT + i*0.25*HEIGHT, 0.88*WIDTH - textWidth(time) - 0.03*HEIGHT, 0.36*HEIGHT + i*0.25*HEIGHT);
+    line(0.88*WIDTH - textWidth(time) - 0.03*HEIGHT, 0.37*HEIGHT + i*0.25*HEIGHT, 0.88*WIDTH - textWidth(time) - 0.0225*HEIGHT, 0.37*HEIGHT + i*0.25*HEIGHT);
 
     if (hover(0.8*WIDTH, 0.9*WIDTH, 0.2*HEIGHT + i*0.25*HEIGHT, 0.26*HEIGHT + i*0.25*HEIGHT) & !hold & mousePressed & pop_up == 0) {
       pop_up = 1;
-      exercise = exercises[i + 3*exercise_index];
+      exercise = exercises.get(i + 3*exercise_index);
     }
   }
 }
