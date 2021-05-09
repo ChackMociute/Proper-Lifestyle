@@ -8,9 +8,9 @@ final int HEIGHT = 200*SCALE;
 final int SCREENS = 6;
 
 color titleColor, backgroundColor, boxColor1, boxColor2;
-int screen, pop_up, recipe_index, tip_index, exercise_index, item_index, text_entry_mode;
+int screen, pop_up, recipe_index, tip_index, exercise_index, item_index, text_entry_mode, height_, weight_goal;
 boolean hold, text_entry, meal_dropdown;
-float calories, day_calories, spent_money, budget, temp_budget, temp_spent_money, timer;
+float calories, day_calories, spent_money, budget, temp_budget, temp_spent_money, timer, weight;
 String text, item_name, item_price;
 ArrayList<ShoppingItem> shopping_items;
 ArrayList<Meal> recipes;
@@ -24,8 +24,11 @@ void settings() {
 
 
 void setup() {
-  screen = 0;
+  screen = -1;
   pop_up = 0;
+  height_ = 150;
+  weight = 50;
+  weight_goal = 0;
   text_entry_mode = 0;
   hold = false;
   text_entry = false;
@@ -63,6 +66,9 @@ void setup() {
 
 void load_screen(int x) {
   switch(x) {
+  case -1:
+    startup();
+    break;
   case 0:
     home();
     break;
@@ -548,7 +554,7 @@ void calorie_pop_up() {
   textAlign(CENTER);
   text("Enter consumed calories", 0.5*WIDTH, 0.55*HEIGHT);
   text("Enter a meal", 0.5*WIDTH, 0.67*HEIGHT);
-  
+
   text_entry_mode = 1;
   calories += int(text_entry_box(225, 255, 0.1*WIDTH, 0.9*WIDTH, 0.56*HEIGHT, 0.6*HEIGHT));
 
@@ -850,6 +856,143 @@ void add_price_pop_up() {
 //SCREEN FUNCTIONS
 //------------------------------------------------------------------------------
 
+
+//-------------STARTUP-------------
+
+void height() {
+  strokeWeight(3);
+  fill(boxColor2);
+  rect(0.05*WIDTH, 0.15*HEIGHT, 0.8*WIDTH, 0.05*HEIGHT, 8);
+
+  fill(0);
+  textAlign(LEFT);
+  text(height_, 0.06*WIDTH, 0.19*HEIGHT);
+
+  if (add_button(0.75*WIDTH, 0.85*WIDTH, 0.15*HEIGHT, 0.2*HEIGHT)) {
+    height_++;
+    delay(150);
+  }
+
+  if (double_add_button(0.65*WIDTH, 0.75*WIDTH, 0.15*HEIGHT, 0.2*HEIGHT)) {
+    height_ += 10;
+    delay(200);
+  }
+
+  if (remove_button(0.55*WIDTH, 0.65*WIDTH, 0.15*HEIGHT, 0.2*HEIGHT)) {
+    if (height_ - 1 >= 0)
+      height_--;
+    else
+      height_ = 0;
+    delay(150);
+  }
+
+  if (double_remove_button(0.45*WIDTH, 0.55*WIDTH, 0.15*HEIGHT, 0.2*HEIGHT)) {
+    if (height_ - 10 >= 0)
+      height_ -= 10;
+    else
+      height_ = 0;
+    delay(200);
+  }
+}
+
+void weight() {
+  strokeWeight(3);
+  fill(boxColor2);
+  rect(0.05*WIDTH, 0.375*HEIGHT, 0.8*WIDTH, 0.05*HEIGHT, 8);
+
+  fill(0);
+  textAlign(LEFT);
+  text(nf(weight, 0, 1), 0.06*WIDTH, 0.415*HEIGHT);
+
+  if (add_button(0.75*WIDTH, 0.85*WIDTH, 0.375*HEIGHT, 0.425*HEIGHT)) {
+    weight += 0.5;
+    delay(150);
+  }
+
+  if (double_add_button(0.65*WIDTH, 0.75*WIDTH, 0.375*HEIGHT, 0.425*HEIGHT)) {
+    weight += 5;
+    delay(200);
+  }
+
+  if (remove_button(0.55*WIDTH, 0.65*WIDTH, 0.375*HEIGHT, 0.425*HEIGHT)) {
+    if (weight - 0.5 >= 0)
+      weight -= 0.5;
+    else
+      weight = 0;
+    delay(150);
+  }
+
+  if (double_remove_button(0.45*WIDTH, 0.55*WIDTH, 0.375*HEIGHT, 0.425*HEIGHT)) {
+    if (weight - 5 >= 0)
+      weight -= 5;
+    else
+      weight = 0;
+    delay(200);
+  }
+}
+
+void weight_goals() {
+  fill(0);
+  textSize(0.03*HEIGHT);
+  textAlign(CENTER);
+
+  text("Lose\nweight", 0.09*WIDTH + 0.025*HEIGHT, 0.58*HEIGHT);
+  text("Maintain\nweight", 0.54*WIDTH - 0.025*HEIGHT, 0.58*HEIGHT);
+  text("Gain\nweight", 0.99*WIDTH - 0.075*HEIGHT, 0.58*HEIGHT);
+
+  for (int i = 0; i < 3; i++) {
+    strokeWeight(3);
+    stroke(0);
+    fill(255);
+    rect(0.09*WIDTH + i*(0.45*WIDTH - 0.05*HEIGHT), 0.65*HEIGHT, 0.05*HEIGHT, 0.05*HEIGHT, 8);
+
+    if (hover(0.09*WIDTH + i*(0.45*WIDTH - 0.05*HEIGHT), 0.09*WIDTH + 0.05*HEIGHT + i*(0.45*WIDTH - 0.05*HEIGHT), 0.65*HEIGHT, 0.7*HEIGHT) & mousePressed)
+      weight_goal = i+1;
+
+    if (weight_goal == i + 1) {
+      fill(0);
+      rect(0.105*WIDTH + i*(0.45*WIDTH - 0.05*HEIGHT), 0.66*HEIGHT, 0.05*HEIGHT - 0.03*WIDTH, 0.05*HEIGHT - 0.03*WIDTH);
+    }
+  }
+}
+
+void conditions() {
+  if (hold & mousePressed & !hover(0.05*WIDTH, 0.85*WIDTH, 0.85*HEIGHT, 0.9*HEIGHT)) {
+    hold = false;
+    text_entry = false;
+    text_entry_mode = 0;
+  }
+
+  strokeWeight(3);
+  if ((hover(0.05*WIDTH, 0.85*WIDTH, 0.85*HEIGHT, 0.9*HEIGHT) & mousePressed) | hold) {
+    fill (255);
+    hold = true;
+    text_entry = true;
+    text_entry_mode = 3;
+  } else
+    fill(boxColor2);
+  rect(0.05*WIDTH, 0.85*HEIGHT, 0.8*WIDTH, 0.05*HEIGHT, 8);
+
+  fill(0);
+  textAlign(LEFT);
+  textSize(0.04*HEIGHT);
+  text(text, 0.06*WIDTH, 0.89*HEIGHT);
+}
+
+void personal_info() {
+  fill(0);
+  textSize(0.04*HEIGHT);
+  textAlign(LEFT);
+  text("What's your height?", 0.05*WIDTH, 0.075*HEIGHT);
+  text("What's your weight?", 0.05*WIDTH, 0.3*HEIGHT);
+  text("What are your weight goals?", 0.05*WIDTH, 0.525*HEIGHT);
+  text("Do you have any underlying\nmedical conditions?", 0.05*WIDTH, 0.75*HEIGHT);
+
+  height();
+  weight();
+  weight_goals();
+  conditions();
+}
 
 //-------------HOME-------------
 
@@ -1235,6 +1378,13 @@ void personal_stats() {
 //SCREENS
 //------------------------------------------------------------------------------
 
+
+void startup() {
+  personal_info();
+
+  if (done_button(WIDTH - 0.1*HEIGHT, WIDTH, 0, 0.1*HEIGHT))
+    screen = 0;
+}
 
 void home() {
   options();
