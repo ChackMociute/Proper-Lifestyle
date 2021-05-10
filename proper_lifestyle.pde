@@ -1382,8 +1382,12 @@ void personal_stats() {
 void startup() {
   personal_info();
 
-  if (done_button(WIDTH - 0.1*HEIGHT, WIDTH, 0, 0.1*HEIGHT))
+  if (done_button(WIDTH - 0.1*HEIGHT, WIDTH, 0, 0.1*HEIGHT) & text != "" & weight_goal != 0){
     screen = 0;
+    text = "";
+    text_entry = false;
+    text_entry_mode = 0;
+  }
 }
 
 void home() {
