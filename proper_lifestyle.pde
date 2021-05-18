@@ -1196,19 +1196,11 @@ void exercise_list() {
     textSize(0.05*HEIGHT);
     textAlign(CENTER);
     text("?", 0.85*WIDTH, 0.25*HEIGHT + i*0.25*HEIGHT);
-
-    String time = "Time: " +  nf(exercises.get(i + 3*exercise_index).time, 0, 0);
-
+    
     textSize(0.03*HEIGHT);
     textAlign(RIGHT);
-    text(time, 0.88*WIDTH, 0.38*HEIGHT + i*0.25*HEIGHT);
-
-    fill(boxColor2);
-    strokeWeight(2);
-    circle(0.88*WIDTH - textWidth(time) - 0.03*HEIGHT, 0.37*HEIGHT + i*0.25*HEIGHT, 0.03*HEIGHT);
-    line(0.88*WIDTH - textWidth(time) - 0.03*HEIGHT, 0.37*HEIGHT + i*0.25*HEIGHT, 0.88*WIDTH - textWidth(time) - 0.03*HEIGHT, 0.36*HEIGHT + i*0.25*HEIGHT);
-    line(0.88*WIDTH - textWidth(time) - 0.03*HEIGHT, 0.37*HEIGHT + i*0.25*HEIGHT, 0.88*WIDTH - textWidth(time) - 0.0225*HEIGHT, 0.37*HEIGHT + i*0.25*HEIGHT);
-
+    text(exercises.get(i + 3*exercise_index).setsreps, 0.88*WIDTH, 0.38*HEIGHT + i*0.25*HEIGHT);
+    
     if (hover(0.8*WIDTH, 0.9*WIDTH, 0.2*HEIGHT + i*0.25*HEIGHT, 0.26*HEIGHT + i*0.25*HEIGHT) & !hold & mousePressed & pop_up == 0) {
       pop_up = 1;
       exercise = exercises.get(i + 3*exercise_index);
